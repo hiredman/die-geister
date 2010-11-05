@@ -1,0 +1,49 @@
+# die-geister
+
+Die Geister is a library that provides composable tasks that execute asynchonously.
+
+## Usage
+
+task:
+a macro which results in an async task.
+geister.core> (task (+ 1 2))
+geister.core.Task@aa754f7a
+geister.core> @*1
+3
+geister.core> 
+
+async:
+similar to let, but each value in a binding is expected to yield an async task, and
+async wraps its body in an implicit (task ...)
+geister.core> (async [x (task (+ 1 2))] (+ x 4))
+geister.core.Task@90b56cdf
+geister.core> @*1
+7
+geister.core> 
+
+async tasks are chainable:
+geister.core> (chain (task (+ 1 2)) (fn [x] (task (inc x))))
+geister.core.Task@aadbba2f
+geister.core> @*1
+4
+geister.core> 
+
+async tasks are joinable:
+geister.core> (join (task (+ 1 2)) (task (+ 3 4)))
+geister.core.MultiTask@df4ec6c0
+geister.core> @*1
+(3 7)
+geister.core> 
+
+by default tasks are queued on clojure's pooledExecutor (same as send). you can rebind
+*task-handler* to change how and where async tasks are executed.
+
+## Installation
+
+FIXME: write
+
+## License
+
+Copyright (C) 2010 FIXME
+
+Distributed under the Eclipse Public License, the same as Clojure.
