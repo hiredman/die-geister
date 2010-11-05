@@ -126,6 +126,12 @@
                     b#
                     (task b#))))))))
 
+(defmacro async-loop [& body]
+  `(loop′ ~@body))
+
+(defmacro async-recur [& body]
+  `(recur′ ~@body))
+
 (comment
 
   (async [n (task (+ 1 2))
