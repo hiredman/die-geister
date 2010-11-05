@@ -21,6 +21,18 @@ geister.core> @*1
 7
 geister.core> 
 
+async-loop:
+like clojure's built in loop. use async-recur instead of recur. each loop iteration
+is queued up as a seperate async task.
+geister.core> (async-loop [[x & xs] (range 10) t 0]
+               (if x
+                (async-recur xs (+ x t))
+                t))
+geister.core.Task@90ce3f54
+geister.core> @*1
+45
+geister.core> 
+
 async tasks are chainable:
 geister.core> (chain (task (+ 1 2)) (fn [x] (task (inc x))))
 geister.core.Task@aadbba2f
@@ -33,6 +45,18 @@ geister.core> (join (task (+ 1 2)) (task (+ 3 4)))
 geister.core.MultiTask@df4ec6c0
 geister.core> @*1
 (3 7)
+geister.core> 
+
+exceptions are propagated through chains of async tasks. if you deref an async task
+and any async tasks that it depended on threw an exception, then that exception will
+be thrown.
+geister.core> (async [x (task "foo")
+                      y (task (+ 1 2))]
+                      (+ y x))
+geister.core.Task@463b2d3c
+geister.core> (try @*1 (catch Exception e (println e)))
+#<ClassCastException java.lang.ClassCastException: java.lang.String cannot be cast to java.lang.Number>
+nil
 geister.core> 
 
 by default tasks are queued on clojure's pooledExecutor (same as send). you can rebind
