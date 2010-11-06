@@ -61,7 +61,7 @@
 (defrecord Task [result work]
   TaskProtocol
   (chain [a-task fun]
-    (task @(bind a-task fun)))
+    (task ((fun (a-task)))))
   (get-value [a-task]
     (if (second @result)
       (throw (second @result))
