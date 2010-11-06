@@ -9,7 +9,11 @@
                  (Thread/sleep 100)
                  (if-not (empty? Q)
                    (recur′ (conj items (.take Q)))
-                   items))]
+                   items))
+        T′ (async [w T
+                   x (future 2)]
+                  (+ (first w) x))]
     (is (not (empty? Q)))
     (is (= (range 10) @T))
+    (is (= 2 @T′))
     (is (empty? Q))))
