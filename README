@@ -62,6 +62,14 @@ geister.core>
 by default tasks are queued on clojure's pooledExecutor (same as send). you can rebind
 *task-handler* to change how and where async tasks are executed.
 
+the TaskProtocol has been extended to futures so you can compose futures with async 
+tasks
+geister.core> (join (future :foo) (task (+ 2 3)))
+geister.core.MultiTask@630cdaf
+geister.core> @*1
+(:foo 5)
+geister.core> 
+
 ## Installation
 
 FIXME: write
