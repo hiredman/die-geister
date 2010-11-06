@@ -1,4 +1,5 @@
-(ns geister.core)
+(ns geister.core
+  (:import [java.util.concurrent Future]))
 
 (declare task-fn)
 
@@ -15,20 +16,24 @@
 
 (defprotocol TaskProtocol
   (chain [task fun])
-  (exception? [task])
-  (get-exception [task])
   (get-value [task])
   (to-multi [task])
   (join [a-task b-task]))
+
+(extend-type Future
+  TaskProtocol
+  (chain [fut fun]
+    (chain (task @fut) fun))
+  (to-multi [fut]
+    (to-multi (task @fut)))
+  (join [fut a-task]
+    (join (to-multi fut) a-task))
+  (get-value [fut] @fut))
 
 (defrecord MultiTask [inner-task]
   TaskProtocol
   (chain [a-task fun]
     (MultiTask. (chain inner-task fun)))
-  (exception? [a-task]
-    (exception? inner-task))
-  (get-exception [a-task]
-    (get-exception inner-task))
   (get-value [a-task]
     (get-value inner-task))
   (to-multi [a-task] a-task)
@@ -49,12 +54,10 @@
   TaskProtocol
   (chain [a-task fun]
     (task ((fun (a-task)))))
-  (exception? [a-task]
-    (boolean (second @result)))
-  (get-exception [a-task]
-    (second @result))
   (get-value [a-task]
-    (first @result))
+    (if (second @result)
+      (throw (second @result))
+      (first @result)))
   (to-multi [a-task]
     (MultiTask.
      (task [@a-task])))
@@ -62,15 +65,11 @@
     (join (to-multi a-task) b-task))
   clojure.lang.IDeref
   (deref [a-task]
-    (if (exception? a-task)
-      (throw (get-exception a-task))
-      (get-value a-task)))
+    (get-value a-task))
   clojure.lang.IFn
   (invoke [a-task]
     (locking work @work)
-    (if (exception? a-task)
-      (throw (get-exception a-task))
-      (get-value a-task)))
+    (get-value a-task))
   Runnable
   (run [a-task] (a-task)))
 
