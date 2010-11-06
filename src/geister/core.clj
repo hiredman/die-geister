@@ -14,6 +14,14 @@
                             [nil t#])))
                @result#))))
 
+(defprotocol Bindable
+  (bind [thing fun]))
+
+(extend-type clojure.lang.IDeref
+  Bindable
+  (bind [thing fun]
+    (delay @(fun @thing))))
+
 (defprotocol TaskProtocol
   (chain [task fun])
   (get-value [task])
@@ -53,7 +61,7 @@
 (defrecord Task [result work]
   TaskProtocol
   (chain [a-task fun]
-    (task ((fun (a-task)))))
+    (task @(bind a-task fun)))
   (get-value [a-task]
     (if (second @result)
       (throw (second @result))
@@ -68,7 +76,7 @@
     (get-value a-task))
   clojure.lang.IFn
   (invoke [a-task]
-    (locking work @work)
+    @work
     (get-value a-task))
   Runnable
   (run [a-task] (a-task)))
