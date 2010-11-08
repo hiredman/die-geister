@@ -89,10 +89,6 @@
     (*task-handler* t)
     t))
 
-(defmacro async [[name a-task] & body]
-  `(letfn [(fun# [~name] (task ~@body))]
-     (chain ~a-task fun#)))
-
 (defmacro async [bindings & body]
   (if (empty? bindings)
     `(task ~@body)
@@ -146,7 +142,7 @@
           y (task "foo")
           x (task (+ n i y))]
          x)
-
+  
   ((fn thisfn [n]
      (if (seq n)
        (chain (task
@@ -155,10 +151,9 @@
               thisfn)
        (task nil)))
    (range 10))
-
-
+    
   (reduce join (map #(task %) (range 10)))
-
+  
   (binding [*task-handler* (fn [t] (t))]
     (let [store (atom 10)]
       (loop′ [n 0 y []]
