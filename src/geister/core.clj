@@ -15,12 +15,23 @@
                @result#))))
 
 (defprotocol Bindable
-  (bind [thing fun]))
+  (bind [thing]))
+
+(defmacro blet [bindings & body]
+  (let [names (take-nth 2 bindings)
+        values (map (fn [v] `(bind ~v))
+                    (take-nth 2 (rest bindings)))
+        bindings (vec (interleave names values))]
+    `(let ~bindings
+       ~@body)))
+
+(extend-type Object
+  Bindable
+  (bind [thing] thing))
 
 (extend-type clojure.lang.IDeref
   Bindable
-  (bind [thing fun]
-    (delay @(fun @thing))))
+  (bind [thing] @thing))
 
 (defprotocol TaskProtocol
   (chain [task fun])
@@ -90,13 +101,9 @@
     t))
 
 (defmacro async [bindings & body]
-  (if (empty? bindings)
-    `(task ~@body)
-    (let [[n t & r] bindings]
-      `(letfn [(fun# [~n]
-                 (async ~(vec r)
-                        ~@body))]
-         (chain ~t fun#)))))
+  `(task
+    (blet ~bindings
+          ~@body)))
 
 (defmethod print-method Task [o w]
   (.write w (str o)))
@@ -142,7 +149,7 @@
           y (task "foo")
           x (task (+ n i y))]
          x)
-  
+
   ((fn thisfn [n]
      (if (seq n)
        (chain (task
@@ -151,9 +158,9 @@
               thisfn)
        (task nil)))
    (range 10))
-    
+
   (reduce join (map #(task %) (range 10)))
-  
+
   (binding [*task-handler* (fn [t] (t))]
     (let [store (atom 10)]
       (loop′ [n 0 y []]
@@ -164,5 +171,9 @@
                          (inc n))
                        (conj y n))
                [n y @store]))))
+
+  (blet [x (future 1)
+         y (future 2)]
+        (+ x y))
 
   )
