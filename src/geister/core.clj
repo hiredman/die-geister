@@ -42,12 +42,12 @@
 (extend-type Future
   TaskProtocol
   (chain [fut fun]
-    (chain (task @fut) fun))
+    (chain (task (.get fut)) fun))
   (to-multi [fut]
-    (to-multi (task @fut)))
+    (to-multi (task (.get fut))))
   (join [fut a-task]
     (join (to-multi fut) a-task))
-  (get-value [fut] @fut))
+  (get-value [fut] (.get fut)))
 
 (defrecord MultiTask [inner-task]
   TaskProtocol
