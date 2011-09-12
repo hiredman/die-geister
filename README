@@ -74,6 +74,14 @@ geister.core>
 
 FIXME: write
 
+## Future
+
+remove Task record, just use Future
+
+namespace for doing async IO with tasks
+
+nicer way to schedule tasks to run, perhaps at the namespace level "all tasks in this namespace are run using function X"
+
 ## License
 
 Copyright (C) 2010 FIXME
