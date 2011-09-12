@@ -59,7 +59,7 @@
   (join [a-task b-task]
     (MultiTask.
      (task
-      (lazy-cat @a-task @(to-multi b-task)))))
+      (lazy-cat (a-task) ((to-multi b-task))))))
   clojure.lang.IDeref
   (deref [a-task]
     @inner-task)
@@ -79,7 +79,7 @@
       (first @result)))
   (to-multi [a-task]
     (MultiTask.
-     (task [@a-task])))
+     (task [(a-task)])))
   (join [a-task b-task]
     (join (to-multi a-task) b-task))
   clojure.lang.IDeref
